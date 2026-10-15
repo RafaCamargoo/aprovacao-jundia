@@ -409,8 +409,37 @@ a.btn-primary:hover,a.btn-primary:focus-visible{color:var(--jd-brand-brown)}
 .conheca{position:relative; padding:var(--sec) 0; overflow:hidden; background:var(--jd-brand-yellow)}
 .conheca .smile{position:absolute; left:-140px; bottom:-160px; width:520px; opacity:.09; pointer-events:none}
 .conheca .grid{position:relative; display:grid; grid-template-columns:.9fr 1.1fr; gap:clamp(28px,5vw,72px); align-items:center}
-.conheca .player{position:relative; justify-self:center; width:min(100%,360px); aspect-ratio:9/16; border-radius:28px; overflow:hidden; background:var(--jd-brand-brown); border:6px solid var(--jd-white); box-shadow:0 30px 60px rgba(93,46,33,.30)}
-.conheca .player video{width:100%; height:100%; object-fit:cover}
+/* dois depoimentos empilhados: um atrás (esquerda/acima) e outro na frente (direita/abaixo); clicar no de trás traz ele pra frente */
+.dstack{position:relative; justify-self:center; width:min(100%,440px); aspect-ratio:1/1.36; transition:height .55s cubic-bezier(.2,.7,.2,1)}
+.dcard{position:absolute; top:0; left:0; width:68%; aspect-ratio:9/16; border-radius:24px; overflow:hidden; border:5px solid var(--jd-white); background:#1C0C04; box-shadow:0 26px 50px rgba(93,46,33,.32); transition:transform .7s cubic-bezier(.2,.8,.2,1), width .55s cubic-bezier(.2,.7,.2,1), filter .4s, opacity .4s, box-shadow .4s}
+.dcard[data-pos="back"]{z-index:1; transform:translate(0,0) rotate(-4deg) scale(.94); filter:brightness(.8) saturate(.9); box-shadow:0 14px 30px rgba(93,46,33,.22)}
+.dcard[data-pos="front"]{z-index:2; transform:translate(47%,11.6%) rotate(3deg)}
+@media (hover:hover){ .dcard[data-pos="back"]:hover{transform:translate(-3%,-3%) rotate(-6deg) scale(.95); filter:brightness(.95)} }
+.dcard.swapin{animation:jd-lift .75s cubic-bezier(.2,.8,.2,1)}
+@keyframes jd-lift{0%{transform:translate(0,0) rotate(-4deg) scale(.94)} 45%{transform:translate(18%,-8%) rotate(0deg) scale(1.04)} 100%{transform:translate(47%,11.6%) rotate(3deg)}}
+.dcard.playing{transform:translate(47%,11.6%) rotate(0)}
+.dcard .dthumb{position:absolute; inset:0; z-index:1; width:100%; height:100%; padding:0; border:0; background:none; cursor:pointer; transition:opacity .3s}
+.dcard .dthumb img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.dcard .play{position:absolute; inset:0; display:grid; place-items:center; background:linear-gradient(180deg, rgba(42,27,20,0) 45%, rgba(42,27,20,.55))}
+.dcard .play i{width:62px; height:62px; border-radius:50%; background:var(--jd-brand-yellow); color:var(--jd-brand-brown); display:grid; place-items:center; box-shadow:0 8px 22px rgba(24,10,0,.35); transition:transform .3s, opacity .3s}
+.dcard .play svg{width:24px; height:24px; margin-left:4px}
+.dcard[data-pos="back"] .play i{opacity:0; transform:scale(.7)}
+.dcard .dthumb:hover .play i{transform:scale(1.06)}
+.dcard .dtag{position:absolute; left:12px; bottom:12px; z-index:1; pointer-events:none; background:var(--jd-brand-brown); color:var(--jd-white); font-family:var(--jd-font-display); font-weight:800; text-transform:uppercase; letter-spacing:.04em; font-size:11px; padding:7px 11px; border-radius:var(--jd-radius-pill); transition:opacity .3s}
+.dcard .dtag .tb, .dcard[data-pos="back"] .dtag .tf{display:none}
+.dcard[data-pos="back"] .dtag .tb{display:inline}
+.dcard .dvid{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:#1C0C04}
+.dcard.playing .dthumb, .dcard.playing .dtag{opacity:0; pointer-events:none}
+.dcard .dclose{position:absolute; top:10px; right:10px; z-index:3; width:40px; height:40px; border-radius:50%; border:0; background:var(--jd-brand-yellow); color:var(--jd-brand-brown); display:grid; place-items:center; cursor:pointer; box-shadow:0 6px 16px rgba(24,10,0,.35)}
+.dcard .dclose[hidden]{display:none}
+.dcard .dclose svg{width:15px; height:15px}
+.dstack .hint{position:absolute; left:0; bottom:0; width:30%; font-size:13px; font-weight:600; color:#4A2A1C; line-height:1.3}
+@media (max-width:900px){
+  .conheca .dstack{order:2; width:min(100%,340px)}
+  .dstack.solo{aspect-ratio:auto}
+  .dstack.solo .dcard.playing{width:100%; transform:none}
+  .dstack.solo .dcard[data-pos="back"]{opacity:0; pointer-events:none}
+}
 .conheca h2{font-size:clamp(28px,3.7vw,46px); padding-bottom:.1em}
 .conheca h2 .script{color:var(--jd-white)}
 .conheca .lead{color:#4A2A1C; margin-top:22px}
@@ -472,7 +501,7 @@ html.smooth-scroll{scroll-behavior:auto}
 .watch .wclose svg{width:16px; height:16px}
 @media (max-width:900px){
   .watch{display:block}
-  .hero .media, .conheca .player{display:none}
+  .hero .media{display:none}
 }
 </style>
 </head>
@@ -771,21 +800,25 @@ html.smooth-scroll{scroll-behavior:auto}
 <section class="conheca" id="conheca" aria-labelledby="conheca-title">
   <img class="smile" src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/logo/ICO-MARROM.png" alt="" aria-hidden="true">
   <div class="wrap grid">
-    <div class="player rv">
-      <!-- Substitui o vídeo antigo: depoimento de franqueados (Itupeva), comprimido para web (720p, ~10 MB). -->
-      <video controls playsinline preload="none" poster="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-depoimento.webp" aria-label="Vídeo: franqueados contam a experiência de abrir a loja Jundiá">
-        <source src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/video/depoimento-franqueados-itupeva.mp4" type="video/mp4">
-      </video>
+    <div class="dstack rv" id="dstack">
+      <!-- Dois depoimentos empilhados. O vídeo novo fica hospedado no repositório aprovacao-jundia (GitHub Pages). -->
+      <div class="dcard" data-name="depoimento-itupeva" data-pos="back" data-label="depoimento dos franqueados da unidade Itupeva">
+        <button class="dthumb" type="button" aria-label="Ver depoimento: depoimento dos franqueados da unidade Itupeva"><img src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-depoimento.webp" alt="" loading="lazy"><span class="play"><i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7Z"/></svg></i></span></button>
+        <video class="dvid" controls playsinline preload="none" poster="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-depoimento.webp" aria-label="depoimento dos franqueados da unidade Itupeva"><source src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/video/depoimento-franqueados-itupeva.mp4" type="video/mp4"></video>
+        <span class="dtag" aria-hidden="true"><span class="tf">Franqueados · Itupeva</span><span class="tb">Ver outro ↺</span></span>
+        <button class="dclose" type="button" aria-label="Fechar vídeo" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
+      <div class="dcard" data-name="depoimento-2" data-pos="front" data-label="depoimento de franqueado Jundiá">
+        <button class="dthumb" type="button" aria-label="Assistir: depoimento de franqueado Jundiá"><img src="https://rafacamargoo.github.io/aprovacao-jundia/poster-depoimento-2.webp" alt="" loading="lazy"><span class="play"><i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7Z"/></svg></i></span></button>
+        <video class="dvid" controls playsinline preload="none" poster="https://rafacamargoo.github.io/aprovacao-jundia/poster-depoimento-2.webp" aria-label="depoimento de franqueado Jundiá"><source src="https://rafacamargoo.github.io/aprovacao-jundia/depoimento-2.mp4" type="video/mp4"></video>
+        <span class="dtag" aria-hidden="true"><span class="tf">Franqueado Jundiá</span><span class="tb">Ver outro ↺</span></span>
+        <button class="dclose" type="button" aria-label="Fechar vídeo" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </div>
     </div>
     <div class="rv">
       <span class="eyebrow"><img src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/logo/ICO-MARROM.png" alt="" aria-hidden="true">Vídeo</span>
       <h2 id="conheca-title" style="margin-top:14px">Conheça a franquia <span class="script ul-word">Jundiá</span></h2>
       <p class="lead">Preencha o formulário. Em até 24 horas, nosso time entrará em contato!</p>
-      <div class="watch" data-name="depoimento">
-  <button class="wthumb" type="button" aria-label="Assistir ao depoimento dos franqueados da unidade Itupeva" aria-expanded="false"><img src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-depoimento.webp" alt="" loading="lazy"><span class="play"><i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7Z"/></svg></i></span></button>
-  <video class="wvid" controls playsinline preload="none" poster="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-depoimento.webp" aria-label="Assistir ao depoimento dos franqueados da unidade Itupeva"><source src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/video/depoimento-franqueados-itupeva.mp4" type="video/mp4"></video>
-  <button class="wclose" type="button" aria-label="Recolher vídeo" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-</div>
       <div class="steps">
         <span class="pill pill-white">Há quase 50 anos no mercado</span>
         <span class="pill pill-white">Fábrica própria</span>
@@ -986,9 +1019,6 @@ html.smooth-scroll{scroll-behavior:auto}
     var hv=document.getElementById('heroVideo');
     if(mobileVid && hv){ hv.removeAttribute('autoplay'); hv.preload='none'; hv.pause(); }
 
-    /* desktop: o depoimento toca no próprio player; registra o primeiro play */
-    var dv=document.querySelector('.conheca .player video');
-    if(dv) dv.addEventListener('play', function(){ if(window.dataLayer) window.dataLayer.push({ event:'video_open', video_name:'depoimento', video_origem:'desktop' }); }, {once:true});
 
     /* mobile: a miniatura cresce no lugar (empurrando a página) e o vídeo toca ali mesmo */
     var players=$$('.watch');
@@ -1023,6 +1053,50 @@ html.smooth-scroll{scroll-behavior:auto}
       box.querySelector('.wclose').addEventListener('click', function(){ collapse(box); });
       box.querySelector('.wvid').addEventListener('ended', function(){ collapse(box); });
     });
+    /* depoimentos empilhados: clicar no de trás traz pra frente; clicar no da frente toca ali mesmo */
+    var ds=document.getElementById('dstack');
+    if(ds){
+      var dcards=[].slice.call(ds.querySelectorAll('.dcard'));
+      var isMob=function(){ return window.matchMedia('(max-width:900px)').matches; };
+      var stopCard=function(c){
+        if(!c.classList.contains('playing')) return;
+        var vid=c.querySelector('.dvid');
+        if(window.dataLayer) window.dataLayer.push({ event:'video_close', video_name:c.dataset.name, video_segundos:Math.round(vid.currentTime||0), video_completo:!!(vid.duration && vid.currentTime>=vid.duration-1) });
+        vid.pause(); c.classList.remove('playing'); c.querySelector('.dclose').hidden=true;
+        if(ds.classList.contains('solo')){
+          var from=ds.offsetHeight; ds.classList.remove('solo');
+          setH(ds, from, ds.clientWidth*1.36, function(){ ds.style.height=''; });
+        }
+      };
+      var setLabels=function(){ dcards.forEach(function(c){ c.querySelector('.dthumb').setAttribute('aria-label', (c.dataset.pos==='front'?'Assistir: ':'Ver depoimento: ')+c.dataset.label); }); };
+      dcards.forEach(function(c){
+        c.querySelector('.dthumb').addEventListener('click', function(){
+          if(c.dataset.pos==='back'){
+            dcards.forEach(function(o){ stopCard(o); o.dataset.pos = (o===c)?'front':'back'; });
+            c.classList.remove('swapin'); c.offsetWidth; c.classList.add('swapin');
+            setLabels(); return;
+          }
+          var vid=c.querySelector('.dvid');
+          c.classList.add('playing'); c.querySelector('.dclose').hidden=false;
+          if(isMob()){
+            var from=ds.offsetHeight, nv=document.getElementById('nav'), navH=nv?nv.offsetHeight:0;
+            ds.classList.add('solo');
+            setH(ds, from, ds.clientWidth*16/9);
+            window.scrollTo({ top: ds.getBoundingClientRect().top+window.scrollY-navH-12, behavior: reduceV?'auto':'smooth' });
+          }
+          vid.muted=false; var p=vid.play(); if(p&&p.catch) p.catch(function(){});
+          if(window.dataLayer) window.dataLayer.push({ event:'video_open', video_name:c.dataset.name, video_origem:isMob()?'mobile':'desktop' });
+        });
+        c.querySelector('.dclose').addEventListener('click', function(){ stopCard(c); c.querySelector('.dthumb').focus({preventScroll:true}); });
+        c.querySelector('.dvid').addEventListener('ended', function(){ stopCard(c); });
+        c.addEventListener('animationend', function(){ c.classList.remove('swapin'); });
+      });
+      if('IntersectionObserver' in window){
+        var dio=new IntersectionObserver(function(es){ es.forEach(function(e){ if(!e.isIntersecting) dcards.forEach(function(c){ c.querySelector('.dvid').pause(); }); }); },{threshold:.1});
+        dio.observe(ds);
+      }
+    }
+
     /* pausa o vídeo quando ele sai da tela */
     if('IntersectionObserver' in window){
       var vio=new IntersectionObserver(function(es){ es.forEach(function(e){ if(!e.isIntersecting && e.target.classList.contains('open')) e.target.querySelector('.wvid').pause(); }); },{threshold:.15});
