@@ -518,7 +518,7 @@ html.vm-open{overflow-y:hidden!important}
       <div class="ctas he d3">
         <a class="btn btn-dark" href="#cadastro">Quero ser franqueado <span class="ar" aria-hidden="true"><svg><use href="#arrow"/></svg></span></a>
       </div>
-      <button class="watch he d3" type="button" aria-haspopup="dialog" aria-label="Assistir ao vídeo: conheça a franquia Jundiá"
+      <button class="watch he d3" type="button" data-name="hero" aria-haspopup="dialog" aria-label="Assistir ao vídeo: conheça a franquia Jundiá"
   data-video="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/video/hero-instagram.mp4"
   data-poster="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-hero-instagram.webp">
   <img src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-hero-instagram.webp" alt="" loading="lazy"><span class="play"><i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7Z"/></svg></i></span>
@@ -781,7 +781,7 @@ html.vm-open{overflow-y:hidden!important}
       <span class="eyebrow"><img src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/logo/ICO-MARROM.png" alt="" aria-hidden="true">Vídeo</span>
       <h2 id="conheca-title" style="margin-top:14px">Conheça a franquia <span class="script ul-word">Jundiá</span></h2>
       <p class="lead">Preencha o formulário. Em até 24 horas, nosso time entrará em contato!</p>
-      <button class="watch" type="button" aria-haspopup="dialog" aria-label="Assistir ao depoimento dos franqueados da unidade Itupeva"
+      <button class="watch" type="button" data-name="depoimento" aria-haspopup="dialog" aria-label="Assistir ao depoimento dos franqueados da unidade Itupeva"
   data-video="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/video/depoimento-franqueados-itupeva.mp4"
   data-poster="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-depoimento.webp">
   <img src="https://brunofreitas-v4.github.io/jundia-franquia-lp/assets/img/poster-depoimento.webp" alt="" loading="lazy"><span class="play"><i><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7Z"/></svg></i></span>
@@ -992,10 +992,14 @@ html.vm-open{overflow-y:hidden!important}
 
     /* cartão "Assista ao vídeo" abre o modal com som */
     var dlg=document.getElementById('vmodal'), mv=document.getElementById('vmodalVideo');
+    /* desktop: o depoimento toca no próprio player; registra o primeiro play */
+    var dv=document.querySelector('.conheca .player video');
+    if(dv) dv.addEventListener('play', function(){ if(window.dataLayer) window.dataLayer.push({ event:'video_open', video_name:'depoimento', video_origem:'desktop' }); }, {once:true});
     if(dlg && mv){
       $$('.watch').forEach(function(btn){
         btn.addEventListener('click', function(){
-          mv.poster=btn.dataset.poster; mv.src=btn.dataset.video; mv.muted=false;
+          mv.poster=btn.dataset.poster; mv.src=btn.dataset.video; mv.muted=false; mv.dataset.name=btn.dataset.name;
+          if(window.dataLayer) window.dataLayer.push({ event:'video_open', video_name:btn.dataset.name, video_origem:'mobile' });
           html.classList.add('vm-open');
           if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
           var p=mv.play(); if(p&&p.catch) p.catch(function(){});
@@ -1004,7 +1008,9 @@ html.vm-open{overflow-y:hidden!important}
       var closeV=function(){ if(dlg.close) dlg.close(); else { dlg.removeAttribute('open'); dlg.dispatchEvent(new Event('close')); } };
       dlg.querySelector('.vclose').addEventListener('click', closeV);
       dlg.addEventListener('click', function(e){ if(e.target===dlg) closeV(); });
-      dlg.addEventListener('close', function(){ mv.pause(); mv.removeAttribute('src'); mv.load(); html.classList.remove('vm-open'); });
+      dlg.addEventListener('close', function(){
+        if(window.dataLayer && mv.dataset.name) window.dataLayer.push({ event:'video_close', video_name:mv.dataset.name, video_segundos:Math.round(mv.currentTime||0), video_completo:!!(mv.duration && mv.currentTime>=mv.duration-1) });
+        mv.pause(); mv.removeAttribute('src'); mv.load(); html.classList.remove('vm-open'); });
     }
 
     /* vídeo do hero: botão pausar/reproduzir (WCAG 2.2.2) e respeito a reduced-motion */
